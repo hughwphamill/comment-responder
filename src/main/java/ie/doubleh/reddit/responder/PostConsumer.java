@@ -4,11 +4,14 @@ import net.dean.jraw.models.Submission;
 import net.dean.jraw.paginators.RedditIterable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
+@Component
 public class PostConsumer implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(PostConsumer.class);
@@ -16,11 +19,12 @@ public class PostConsumer implements Runnable {
     private final RedditIterable<Submission> subredditPaginator;
     private final String searchTerm;
     private final Integer pageBufferSize;
-    private final Set<String> processedSubmissions;
+    private final ProcessedSubmissionCache processedSubmissions;
     private final List<Submission> submissionQueue;
 
+    @Autowired
     public PostConsumer(RedditIterable<Submission> subredditPaginator, String searchTerm, Integer pageBufferSize,
-            Set<String> processedSubmissions, List<Submission> submissionQueue) {
+            ProcessedSubmissionCache processedSubmissions, List<Submission> submissionQueue) {
         this.subredditPaginator = subredditPaginator;
         this.searchTerm = searchTerm;
         this.pageBufferSize = pageBufferSize;
@@ -28,6 +32,7 @@ public class PostConsumer implements Runnable {
         this.submissionQueue = submissionQueue;
     }
 
+    @Scheduled(fixedDelay=5000)
     @Override public void run() {
         subredditPaginator.reset();
 

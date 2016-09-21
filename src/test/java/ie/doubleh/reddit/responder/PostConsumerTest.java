@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -35,7 +34,7 @@ public class PostConsumerTest {
     private Submission unmatchingSubmission;
 
     private Integer pageBufferSize;
-    private Set<String> processedSubmissions;
+    private ProcessedSubmissionCache processedSubmissions;
     private List<Submission> submissionQueue;
 
     private Fixture fixture;
@@ -45,7 +44,7 @@ public class PostConsumerTest {
         fixture = new Fixture();
 
         pageBufferSize = fixture.pageBufferSize;
-        processedSubmissions = new HashSet<>();
+        processedSubmissions = new ProcessedSubmissionCache();
         submissionQueue = new ArrayList<>();
 
         initializeSubmissions();
@@ -98,7 +97,7 @@ public class PostConsumerTest {
         postConsumer.run();
 
         // Then
-        assertThat(processedSubmissions).contains(matchingSubmission.getId(), unmatchingSubmission.getId());
+        assertThat(processedSubmissions.entries()).contains(matchingSubmission.getId(), unmatchingSubmission.getId());
     }
 
     @Test
