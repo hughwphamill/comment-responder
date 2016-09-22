@@ -40,7 +40,7 @@ public class SubmissionResponder implements Runnable {
             try {
                 accountManager.reply(submission, responseMap.get(searchTerm));
             } catch (ApiException e) {
-                logger.error("Could not reply to {}", submission.getPermalink(), e);
+                logger.error("Could not reply to {} : {}", submission.getPermalink(), e.getMessage());
             }
         }
     }

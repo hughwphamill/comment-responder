@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class SubmissionConsumer implements Runnable {
@@ -42,9 +43,18 @@ public class SubmissionConsumer implements Runnable {
         listing.stream()
                 .filter(s -> !processedSubmissions.contains(s.getId()))
                 .peek(s -> processedSubmissions.add(s.getId()))
-                .filter(s -> s.getTitle().toLowerCase().contains(searchTerm.toLowerCase()))
+                .filter(this::matchingIgnoringCase)
                 .peek(s -> logger.info("Match: {} | {}", s.getTitle(), s.getPermalink()))
                 .forEach(s -> submissionQueue.add(MatchingSubmission.of(searchTerm, s)));
+    }
+
+    private boolean matchingIgnoringCase(Submission submission) {
+        String lowerCaseSearchTerm = searchTerm.toLowerCase();
+        String lowerCaseTitle = submission.getTitle().toLowerCase();
+        Optional<String> lowerCaseSelfText
+                = submission.isSelfPost() ? Optional.of(submission.getSelftext()) : Optional.empty();
+        return lowerCaseTitle.contains(lowerCaseSearchTerm)
+                || lowerCaseSelfText.orElse("").contains(lowerCaseSearchTerm);
     }
 
 }

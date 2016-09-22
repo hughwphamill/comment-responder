@@ -3,6 +3,8 @@ package ie.doubleh.reddit.responder.bot;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProcessedSubmissionCacheTest {
@@ -11,7 +13,7 @@ public class ProcessedSubmissionCacheTest {
 
     @Before
     public void setup() throws Exception {
-        cache = new ProcessedSubmissionCache();
+        cache = new ProcessedSubmissionCache(3, TimeUnit.HOURS);
     }
 
     @Test
@@ -39,4 +41,18 @@ public class ProcessedSubmissionCacheTest {
         assertThat(isPresent).isFalse();
     }
 
+    @Test
+    public void value_should_be_evicted_according_to_cache_policy() throws Exception {
+        // Given
+        String expected = "expected";
+        cache =  new ProcessedSubmissionCache(2, TimeUnit.MILLISECONDS);
+
+        // When
+        cache.add(expected);
+        Thread.sleep(10);
+        boolean isPresent = cache.contains(expected);
+
+        // Then
+        assertThat(isPresent).isFalse();
+    }
 }

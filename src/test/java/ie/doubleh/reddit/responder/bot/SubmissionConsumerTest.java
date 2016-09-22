@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ie.doubleh.reddit.responder.bot.model.MatchingSubmission;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.paginators.RedditIterable;
-import net.dean.jraw.paginators.SubredditPaginator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,11 +15,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -35,6 +34,8 @@ public class SubmissionConsumerTest {
 
     private Submission matchingSubmission;
     private Submission unmatchingSubmission;
+    private Submission matchingSelfSubmission;
+    private Submission unmatchingSelfSubmission;
 
     private Integer pageBufferSize;
     private ProcessedSubmissionCache processedSubmissions;
@@ -46,7 +47,7 @@ public class SubmissionConsumerTest {
         fixture = new Fixture();
 
         pageBufferSize = fixture.pageBufferSize;
-        processedSubmissions = new ProcessedSubmissionCache();
+        processedSubmissions = new ProcessedSubmissionCache(3, TimeUnit.HOURS);
 
         initializeSubmissions();
 
@@ -58,8 +59,12 @@ public class SubmissionConsumerTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File matchingSubmissionFile = new File(classLoader.getResource("matchingSubmissionTitle.json").getFile());
         File unmatchingSubmissionFile = new File(classLoader.getResource("unmatchingSubmissionTitle.json").getFile());
+        File matchingSelfSubmissionFile = new File(classLoader.getResource("matchingSelfSubmission.json").getFile());
+        File unmatchingSelfSubmissionFile = new File(classLoader.getResource("unmatchingSelfSubmission.json").getFile());
         matchingSubmission = new Submission(mapper.readTree(matchingSubmissionFile));
         unmatchingSubmission = new Submission(mapper.readTree(unmatchingSubmissionFile));
+        matchingSelfSubmission = new Submission(mapper.readTree(matchingSelfSubmissionFile));
+        unmatchingSelfSubmission = new Submission(mapper.readTree(unmatchingSelfSubmissionFile));
     }
 
     @Test
@@ -140,6 +145,32 @@ public class SubmissionConsumerTest {
 
         // Then
         verify(submissionQueue, never()).add(MatchingSubmission.of(fixture.searchTerm, unmatchingSubmission));
+    }
+
+    @Test
+    public void matching_self_submission_should_be_added_to_queue() throws Exception {
+        // Given
+        given(subredditPaginator.accumulateMerged(anyInt())).willReturn(
+                Arrays.asList(matchingSelfSubmission, unmatchingSelfSubmission));
+
+        // When
+        submissionConsumer.run();
+
+        // Then
+        verify(submissionQueue).add(MatchingSubmission.of(fixture.searchTerm, matchingSelfSubmission));
+    }
+
+    @Test
+    public void unmatching_self_submission_should_not_be_added_to_queue() throws Exception {
+        // Given
+        given(subredditPaginator.accumulateMerged(anyInt())).willReturn(
+                Arrays.asList(matchingSelfSubmission, unmatchingSelfSubmission));
+
+        // When
+        submissionConsumer.run();
+
+        // Then
+        verify(submissionQueue, never()).add(MatchingSubmission.of(fixture.searchTerm, unmatchingSelfSubmission));
     }
 
     private class Fixture {
