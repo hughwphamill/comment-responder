@@ -1,4 +1,4 @@
-package ie.doubleh.reddit.responder;
+package ie.doubleh.reddit.responder.bot;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
