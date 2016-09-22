@@ -120,7 +120,7 @@ public class SubmissionConsumerTest {
     }
 
     @Test
-    public void matching_submission_should_be_added_to_regardless_of_case() throws Exception {
+    public void matching_submission_should_be_added_to_queue_regardless_of_case() throws Exception {
         // Given
         submissionConsumer = new SubmissionConsumer(subredditPaginator, fixture.searchTerm.toUpperCase(), pageBufferSize,
                 processedSubmissions, submissionQueue);
@@ -158,6 +158,21 @@ public class SubmissionConsumerTest {
 
         // Then
         verify(submissionQueue).add(MatchingSubmission.of(fixture.searchTerm, matchingSelfSubmission));
+    }
+
+    @Test
+    public void matching_self_submission_should_be_added_to_queue_regardless_of_case() throws Exception {
+        // Given
+        submissionConsumer = new SubmissionConsumer(subredditPaginator, fixture.searchTerm.toUpperCase(), pageBufferSize,
+                processedSubmissions, submissionQueue);
+        given(subredditPaginator.accumulateMerged(anyInt())).willReturn(
+                Arrays.asList(matchingSelfSubmission, unmatchingSelfSubmission));
+
+        // When
+        submissionConsumer.run();
+
+        // Then
+        verify(submissionQueue).add(MatchingSubmission.of(fixture.searchTerm.toUpperCase(), matchingSelfSubmission));
     }
 
     @Test

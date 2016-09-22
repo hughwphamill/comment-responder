@@ -4,6 +4,7 @@ import com.aol.cyclops.data.async.Queue;
 import com.aol.cyclops.internal.stream.ReactiveSeqImpl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ie.doubleh.reddit.responder.bot.model.MatchingSubmission;
+import ie.doubleh.reddit.responder.bot.model.ResponseModel;
 import net.dean.jraw.ApiException;
 import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
@@ -46,7 +47,7 @@ public class SubmissionResponderTest {
 
         initializeSubmissions();
 
-        responder = new SubmissionResponder(submissionQueue, fixture.responseMap, accountManager);
+        responder = new SubmissionResponder(submissionQueue, fixture.responseModel, accountManager);
     }
 
     private void initializeSubmissions() throws IOException {
@@ -113,11 +114,14 @@ public class SubmissionResponderTest {
         private final String response1 = "response1";
         private final String response2 = "response2";
         private final Map<String, String> responseMap;
+        private final ResponseModel responseModel;
 
         private Fixture() {
             responseMap = new HashMap<>(1);
             responseMap.put(knownSearch1, response1);
             responseMap.put(knownSearch2, response2);
+            responseModel = new ResponseModel();
+            responseModel.setSubmissionResponses(responseMap);
         }
     }
 }

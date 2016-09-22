@@ -2,11 +2,13 @@ package ie.doubleh.reddit.responder.bot;
 
 import com.aol.cyclops.data.async.Queue;
 import ie.doubleh.reddit.responder.bot.model.MatchingSubmission;
+import ie.doubleh.reddit.responder.bot.model.ResponseModel;
 import net.dean.jraw.ApiException;
 import net.dean.jraw.managers.AccountManager;
 import net.dean.jraw.models.Submission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -21,10 +23,11 @@ public class SubmissionResponder implements Runnable {
     private final Map<String, String> responseMap;
     private final AccountManager accountManager;
 
-    public SubmissionResponder(Queue<MatchingSubmission> submissionQueue, Map<String, String> responseMap,
+    @Autowired
+    public SubmissionResponder(Queue<MatchingSubmission> submissionQueue, ResponseModel responseModel,
             AccountManager accountManager) {
         this.submissionQueue = submissionQueue;
-        this.responseMap = responseMap;
+        this.responseMap = responseModel.getSubmissionResponses();
         this.accountManager = accountManager;
     }
 

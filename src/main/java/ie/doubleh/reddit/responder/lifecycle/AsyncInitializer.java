@@ -1,6 +1,7 @@
 package ie.doubleh.reddit.responder.lifecycle;
 
-import ie.doubleh.reddit.responder.bot.SubmissionResponder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -8,9 +9,10 @@ import javax.annotation.PostConstruct;
 @Component
 public class AsyncInitializer {
 
-    private final SubmissionResponder submissionResponder;
+    private final Runnable submissionResponder;
 
-    public AsyncInitializer(SubmissionResponder submissionResponder) {
+    @Autowired
+    public AsyncInitializer(@Qualifier("submissionResponder") Runnable submissionResponder) {
         this.submissionResponder = submissionResponder;
     }
 
