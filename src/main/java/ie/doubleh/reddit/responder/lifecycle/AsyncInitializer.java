@@ -5,19 +5,24 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.HashSet;
+import java.util.Set;
 
 @Component
 public class AsyncInitializer {
 
-    private final Runnable submissionResponder;
+    private final Set<Runnable> runnables;
 
     @Autowired
-    public AsyncInitializer(@Qualifier("submissionResponder") Runnable submissionResponder) {
-        this.submissionResponder = submissionResponder;
+    public AsyncInitializer(@Qualifier("submissionResponder") Runnable submissionResponder,
+            @Qualifier("periodicAuthenticator") Runnable periodicAuthenticator) {
+        runnables = new HashSet<>();
+        runnables.add(submissionResponder);
+        runnables.add(periodicAuthenticator);
     }
 
     @PostConstruct
     public void executeAsyncMethods() {
-        submissionResponder.run();
+        runnables.parallelStream().forEach(Runnable::run);
     }
 }

@@ -2,6 +2,8 @@ package ie.doubleh.reddit.responder.bot;
 
 import com.aol.cyclops.data.async.Queue;
 import ie.doubleh.reddit.responder.bot.model.MatchingSubmission;
+import net.dean.jraw.ApiException;
+import net.dean.jraw.http.NetworkException;
 import net.dean.jraw.models.Submission;
 import net.dean.jraw.paginators.RedditIterable;
 import org.slf4j.Logger;
@@ -33,15 +35,19 @@ public class SubmissionConsumer implements Runnable {
 
     @Scheduled(fixedDelay=30000)
     @Override public void run() {
-        subredditPaginator.reset();
-        List<Submission> listing = subredditPaginator.accumulateMerged(pageBufferSize);
+        try {
+            subredditPaginator.reset();
+            List<Submission> listing = subredditPaginator.accumulateMerged(pageBufferSize);
 
-        listing.stream()
-                .filter(s -> !processedSubmissions.contains(s.getId()))
-                .peek(s -> processedSubmissions.add(s.getId()))
-                .filter(this::matchingIgnoringCase)
-                .peek(s -> logger.info("Match for '{}': {} | {}", searchTerm, s.getTitle(), s.getPermalink()))
-                .forEach(s -> submissionQueue.add(MatchingSubmission.of(searchTerm, s)));
+            listing.stream()
+                    .filter(s -> !processedSubmissions.contains(s.getId()))
+                    .peek(s -> processedSubmissions.add(s.getId()))
+                    .filter(this::matchingIgnoringCase)
+                    .peek(s -> logger.info("Match for '{}': {} | {}", searchTerm, s.getTitle(), s.getPermalink()))
+                    .forEach(s -> submissionQueue.add(MatchingSubmission.of(searchTerm, s)));
+        } catch (NetworkException e) {
+            logger.error("Error retrieving submissions: {}", e.getMessage());
+        }
     }
 
     private boolean matchingIgnoringCase(Submission submission) {

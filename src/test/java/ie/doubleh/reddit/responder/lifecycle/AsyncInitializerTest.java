@@ -15,10 +15,11 @@ public class AsyncInitializerTest {
     private AsyncInitializer asyncInitializer;
 
     @Mock private SubmissionResponder submissionResponder;
+    @Mock private PeriodicAuthenticator authenticator;
 
     @Before
     public void setup() {
-         asyncInitializer = new AsyncInitializer(submissionResponder);
+         asyncInitializer = new AsyncInitializer(submissionResponder, authenticator);
     }
 
     @Test
@@ -28,5 +29,14 @@ public class AsyncInitializerTest {
 
         // Then
         verify(submissionResponder).run();
+    }
+
+    @Test
+    public void should_start_authenticator() throws Exception {
+        // When
+        asyncInitializer.executeAsyncMethods();
+
+        // Then
+        verify(authenticator).run();
     }
 }
