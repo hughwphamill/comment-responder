@@ -42,7 +42,7 @@ public class SubmissionResponder implements Runnable {
         if (responseMap.containsKey(searchTerm)) {
             try {
                 accountManager.reply(submission, responseMap.get(searchTerm));
-            } catch (ApiException e) {
+            } catch (Exception e) {
                 logger.error("Could not reply to {} : {}", submission.getPermalink(), e.getMessage());
             }
         }
